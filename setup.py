@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from lib.__version__ import version
+from REPcluster.__version__ import version
 
 from setuptools import setup, find_packages
 # from distutils.core import setup
@@ -23,7 +23,7 @@ setup(
     include_package_data=True,
     scripts=[],
     entry_points={
-        'console_scripts': ['REPclust = lib.cluster:main',
+        'console_scripts': ['REPclust = REPcluster.cluster:main',
         ],
     },
 )
