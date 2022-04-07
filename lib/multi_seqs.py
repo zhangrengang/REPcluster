@@ -2,6 +2,7 @@ import sys
 import math
 from Bio import SeqIO
 from Bio.Seq import Seq
+from xopen import xopen as open
 
 def main():
 	seqfile = sys.argv[1]
