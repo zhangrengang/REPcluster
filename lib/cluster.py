@@ -41,14 +41,13 @@ def makeArgparse():
 	group_kmer = parser.add_argument_group('Kmer matrix',)
 	group_kmer.add_argument('-x', '-multiple', type=int, default=1, metavar='INT',
 					dest='multiple',
-					 help="Repeat sequences for cluster tandem repeats [default=%(default)s]")
+					 help="Repeat sequences to cluster tandem repeats [default=%(default)s]")
 	group_kmer.add_argument('-k', type=int, default=15, metavar='INT',
 					 help="Length of kmer [default=%(default)s]")
 	
 	group_kmer.add_argument('-m', "-measure", default='jaccard', dest='measure',
 					choices=['jaccard', 'min', 'max', 'cosine',],
-					help="The similarity measure to be calculated, one of the following: \
-jaccard, min, max, cosine [default=%(default)s]")
+					help="The similarity measure to be calculated. [default=%(default)s]")
 
  
 	# cluster
@@ -59,7 +58,7 @@ jaccard, min, max, cosine [default=%(default)s]")
 					
 	group_clst.add_argument('-I', '-inflation', type=float, default=2.0, metavar='FLOAT',
 					dest='inflation',
-					help="Inflation (varying this parameter affects granularity) [default=%(default)s]")
+					help="Inflation for MCL (varying this parameter affects granularity) [default=%(default)s]")
 
 
 	# others
@@ -71,6 +70,9 @@ jaccard, min, max, cosine [default=%(default)s]")
 	group_other.add_argument('-v', '-version', action='version', version=version)
 	
 	args = parser.parse_args()
+	if len(sys.argv) == 1:
+		parser.print_help()
+		sys.exit()
 	if args.prefix is not None:
 		args.prefix = args.prefix.replace('/', '_')
 	if not (args.fasta or args.lst) or (args.fasta and args.lst):
