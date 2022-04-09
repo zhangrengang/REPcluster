@@ -72,9 +72,13 @@ def argparser():
 	group_other.add_argument('-v', '-version', action='version', version=version)
 	return parser
 
-def makeArgparse():
+def makeArgparse(opts=None):
 	parser = argparser()
-	args = parser.parse_args()
+	if opts is None:
+		args = parser.parse_args()
+	else:
+		args = parser.parse_args(opts.split())
+	
 	if args.prefix is not None:
 		args.prefix = args.prefix.replace('/', '_')
 	return args
@@ -147,10 +151,8 @@ kmer-db distance {measure} -phylip-out {matrix}'''.format(
 			logger.info('Cleaning {}'.format(self._tmpdir))
 			rmdirs(self._tmpdir)
 	
-def main(args=makeArgparse(), opts=None):
-	if args is None and isinstance(opts, str):
-		parser = argparser()
-		args = parser.parse_args(opts.split())
+def main(opts=None):
+	args = makeArgparse()
 	logger.info('Command: {}'.format(' '.join(sys.argv)))
 	logger.info('Version: {}'.format(version))
 	logger.info('Arguments: {}'.format(args.__dict__))
