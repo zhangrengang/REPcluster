@@ -85,13 +85,12 @@ class Pipeline:
 		
 	def run(self):
 		# mkdir
-		self.outdir = os.path.realpath(self.outdir)
-		self.tmpdir = os.path.realpath(self.tmpdir)
+		self._outdir = self.outdir = os.path.realpath(self.outdir)
+		self._tmpdir = self.tmpdir = os.path.realpath(self.tmpdir)
 		mkdirs(self.outdir)
 		mkdirs(self.tmpdir)
 		self.outdir += '/'
 		self.tmpdir += '/'
-		self._outdir = self.outdir
 		if self.prefix is not None:
 			self.outdir = self.outdir + self.prefix
 			self.tmpdir = self.tmpdir + self.prefix
@@ -143,6 +142,11 @@ kmer-db distance {measure} -phylip-out {matrix}'''.format(
 		with open(outseq, 'w') as fout:
 			mcl.generate_seqs(fout, network, d_seqs)
 		
+		# cleanup
+		if self.cleanup:
+			logger.info('Cleaning {}'.format(self._tmpdir))
+			rmdirs(self._tmpdir)
+	
 def main(args=makeArgparse(), opts=None):
 	if args is None and isinstance(opts, str):
 		parser = argparser()
