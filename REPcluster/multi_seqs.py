@@ -23,5 +23,6 @@ def multi_seqs(seqfiles=None, seqlist=None, outfile=sys.stdout, fold=2, min_leng
 				_fold = int(math.ceil(1.0*min_length/len(rc.seq)))
 				fold = max(fold, _fold)
 			rc.seq = Seq(''.join([str(rc.seq)] * fold))
+			rc.description = rc.id
 			SeqIO.write(rc, outfile, 'fasta')
 	return d_seqs

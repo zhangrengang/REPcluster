@@ -13,7 +13,7 @@ with open('README.md') as f:
 setup(
     name='REPcluster',
     version=version,
-    description='subphaser: phase subgenomes of allopolyploidy based on repeatitive kmers',
+    description='Clustering repeat sequences with kmer-based distance',
     url='https://github.com/zhangrengang/REPcluster',
     author='Zhang, Ren-Gang and Wang, Zhao-Xuan',
     license='GPL-3.0',

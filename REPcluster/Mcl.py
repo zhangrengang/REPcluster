@@ -30,18 +30,21 @@ class MclGroup:
 				try: weight = d_weight[(node1, node2)]
 				except KeyError: continue
 				for node in (node1, node2):
-					try: d_sum[node] += weight
-					except KeyError: d_sum[node] = weight
+					try: d_sum[node] += [weight]
+					except KeyError: d_sum[node] = [weight]
 			if len(d_sum) > 1:
-				grp.center = max(d_sum.items(), key=lambda x:x[1])[0]
+				grp.center = max(d_sum.items(), key=lambda x:sum(x[1]))[0]
+				weights = d_sum[grp.center]
+				grp.weight = sum(weights) / len(weights)
 			else:
 				grp.center = grp[0]
+				grp.weight = 1
 			yield grp
 		
 	def generate_seqs(self, fout, abc, d_seqs):
 		for grp in self.assign_center(abc):
 			seq = d_seqs[grp.center]
-			desc = 'N={};L={};center={}'.format(len(grp), len(seq), grp.center)
+			desc = 'N={};L={};center={};weight={:.2f}'.format(len(grp), len(seq), grp.center, grp.weight)
 			print('>{} {}\n{}'.format(grp.id, desc, seq), file=fout)
 			
 class MclGroupRecord:

@@ -32,7 +32,7 @@ def argparser():
 #					help="Each line is a single FASTA file and treated as a separate sample")
 	# output
 	group_out = parser.add_argument_group('Output')
-	group_out.add_argument('-pre', '-prefix', default='repclust', dest='prefix', metavar='STR',
+	group_out.add_argument('-pre', '-prefix', default=None, dest='prefix', metavar='STR',
 					help="Prefix for output [default=%(default)s]")
 	group_out.add_argument('-o', '-outdir', default='.', dest='outdir', metavar='DIR',
 					help="Output directory [default=%(default)s]")
@@ -81,6 +81,8 @@ def makeArgparse(opts=None):
 	
 	if args.prefix is not None:
 		args.prefix = args.prefix.replace('/', '_')
+	else:
+		args.prefix = os.path.basename(args.fasta[0])
 	return args
 
 class Pipeline:
@@ -114,37 +116,61 @@ class Pipeline:
 		# use kmer-db for marix
 		db = self.tmpdir + '.kmer.db'
 		matrix = self.outdir + '.a2a.csv'
-		cmd = '''kmer-db build {opts} {input} {db} && \
-kmer-db all2all {db} {matrix} && \
-kmer-db distance {measure} -phylip-out {matrix}'''.format(
-			opts=opts, measure=self.measure, input=input, db=db, matrix=matrix)
-		run_cmd(cmd, log=True)
+		# kmer-db
+		ckp_file = self.tmpdir + '.k{}.ok'.format(self.k)
+		ckp = check_ckp(ckp_file)
+		if self.overwrite or not ckp:
+			cmd = 'kmer-db build {opts} {input} {db} && \
+				kmer-db all2all {db} {matrix} && touch {ckp}'.format(
+				opts=opts, input=input, db=db, matrix=matrix, ckp = ckp_file)
+			run_cmd(cmd, log=True)
 		
+		# distance
 		dist = matrix + '.' + self.measure
 		network = self.outdir + '.network'
-		with open(network, 'w') as fout:
-			matrix2list(dist, fout, cutoff=self.min_similarity, phylip=True)
+		ckp_file = ckp_file+ '.{}.ok'.format(self.measure)
+		ckp = check_ckp(ckp_file)
+		if self.overwrite or not ckp:
+			cmd = 'kmer-db distance {measure} -phylip-out {matrix} && touch {ckp}'.format(
+				opts=opts, measure=self.measure, input=input, db=db, matrix=matrix, ckp = ckp_file)
+			run_cmd(cmd, log=True)
+		
+		ckp_file = ckp_file+ '.{}.ok'.format(self.min_similarity)
+		ckp = check_ckp(ckp_file)
+		if self.overwrite or not ckp:
+			# output network
+			with open(network, 'w') as fout:
+				matrix2list(dist, fout, cutoff=self.min_similarity, phylip=True)
+			mk_ckp(ckp_file, )
 		
 		# cluster by mcl
 		logger.info('Cluster..')
 		cluster = self.outdir + '.mcl'
-		cmd = 'mcl {input} --abc -I {inflation} -o {output} -te {ncpu}'.format(
-			inflation=self.inflation, input=network, output=cluster, ncpu=self.ncpu)
-		run_cmd(cmd, log=True)
-		
-		# attribution of CID
 		attr = self.outdir + '.attr'
-		mcl = MclGroup(cluster, prefix='CL')
-		with open(attr, 'w') as fout:
-			mcl.assign_cid(fout, min_nodes=0, )
-		logger.info('Import `{}` and `{}` into Cytoscape for visualization'.format(network, attr))
+		outseq = self.outdir + '.clust'
+		ckp_file = ckp_file + '.mcl.ok'
+		ckp = check_ckp(ckp_file)
+		if self.overwrite or not ckp:
+			cmd = 'mcl {input} --abc -I {inflation} -o {output} -te {ncpu} && touch {ckp}'.format(
+				inflation=self.inflation, input=network, output=cluster, ncpu=self.ncpu, ckp = ckp_file)
+			run_cmd(cmd, log=True)
+			
+		ckp_file = ckp_file + '.output.ok'
+		ckp = check_ckp(ckp_file)
+		if self.overwrite or not ckp:
+			logger.info('Output..')
+			# attribution of CID
+			mcl = MclGroup(cluster, prefix='CL')
+			with open(attr, 'w') as fout:
+				mcl.assign_cid(fout, min_nodes=0, )
 
-		# output seq
-		outseq = self.outdir + '.fa'
-		logger.info('Output centred sequences: `{}`'.format(outseq))
+			# output seq
+			with open(outseq, 'w') as fout:
+				mcl.generate_seqs(fout, network, d_seqs)
+			mk_ckp(ckp_file, )
 		
-		with open(outseq, 'w') as fout:
-			mcl.generate_seqs(fout, network, d_seqs)
+		logger.info('Import `{}` and `{}` into Cytoscape for visualization'.format(network, attr))
+		logger.info('Check `{}` for centred seqence of each cluster'.format(outseq, ))
 		
 		# cleanup
 		if self.cleanup:
