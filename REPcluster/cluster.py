@@ -1,11 +1,6 @@
 import sys,os
-import copy
 import argparse
-import shutil
-import json
-import math
 import multiprocessing
-from collections import OrderedDict, Counter
 from xopen import xopen as open
 from Bio import SeqIO
 from .small_tools import mkdirs, rmdirs, mk_ckp, check_ckp, test_s
@@ -110,8 +105,10 @@ class Pipeline:
 						fold=self.multiple, min_length=self.k*self.multiple)
 		opts += ' -multisample-fasta'
 		input = self.tmpdir + '.list'
-		cmd = 'realpath {} > {}'.format(fasta, input)
-		run_cmd(cmd, log=True)
+		#cmd = 'realpath {} > {}'.format(fasta, input)
+		#run_cmd(cmd, log=True, fail_exit=True)
+		with open(input, 'w') as fout:
+			fout.write(os.path.realpath(fasta)+'\n')
 			
 		# use kmer-db for marix
 		db = self.tmpdir + '.kmer.db'
@@ -123,7 +120,7 @@ class Pipeline:
 			cmd = 'kmer-db build {opts} {input} {db} && \
 				kmer-db all2all {db} {matrix} && touch {ckp}'.format(
 				opts=opts, input=input, db=db, matrix=matrix, ckp = ckp_file)
-			run_cmd(cmd, log=True)
+			run_cmd(cmd, log=True, fail_exit=True)
 		
 		# distance
 		dist = matrix + '.' + self.measure
@@ -133,7 +130,7 @@ class Pipeline:
 		if self.overwrite or not ckp:
 			cmd = 'kmer-db distance {measure} -phylip-out {matrix} && touch {ckp}'.format(
 				opts=opts, measure=self.measure, input=input, db=db, matrix=matrix, ckp = ckp_file)
-			run_cmd(cmd, log=True)
+			run_cmd(cmd, log=True, fail_exit=True)
 		
 		ckp_file = ckp_file+ '.{}.ok'.format(self.min_similarity)
 		ckp = check_ckp(ckp_file)
@@ -153,7 +150,7 @@ class Pipeline:
 		if self.overwrite or not ckp:
 			cmd = 'mcl {input} --abc -I {inflation} -o {output} -te {ncpu} && touch {ckp}'.format(
 				inflation=self.inflation, input=network, output=cluster, ncpu=self.ncpu, ckp = ckp_file)
-			run_cmd(cmd, log=True)
+			run_cmd(cmd, log=True, fail_exit=True)
 			
 		ckp_file = ckp_file + '.output.ok'
 		ckp = check_ckp(ckp_file)

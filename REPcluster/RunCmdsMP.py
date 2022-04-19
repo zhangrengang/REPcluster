@@ -280,7 +280,7 @@ def file2list(cmd_file, sep="\n"):
 			cmd_list = f.read().split(sep)
 	return [cmd for cmd in cmd_list if cmd.strip()]
 
-def run_cmd(cmd, log=False, logger=None, ):
+def run_cmd(cmd, log=False, logger=None, fail_exit=False):
 	if log and logger is None:
 		logger = LOGGER
 	if logger is not None:
@@ -291,8 +291,10 @@ def run_cmd(cmd, log=False, logger=None, ):
 	output = job.communicate()
 	status = job.poll()
 	if logger is not None and status > 0:
-		 logger.warn("exit code {} for CMD `{}`: ".format(status, cmd))
-		 logger.warn('\n###STDOUT:<< {0} >>\n###STDERR:<< {1} >>'.format(*map(lambda x:x.decode(), output)))
+		logger.warn("exit code {} for CMD `{}`: ".format(status, cmd))
+		logger.warn('\n###STDOUT:<< {0} >>\n###STDERR:<< {1} >>'.format(*map(lambda x:x.decode(), output)))
+		if fail_exit:
+			raise ValueError('Failed to run CMD, see details above.')
 	return output + (status,)
 
 def _run_cmd(arg):
