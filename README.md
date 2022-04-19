@@ -1,3 +1,5 @@
+REPcluster aim to cluster repeat sequences that have similar contents but distinct structures, such as (TTTAGGG)m vs (TTTAGGG)n (tandem repeats), A-B-C vs A-C (some TE sequences).
+
 ### Quick install and start ###
 ```
 git clone https://github.com/zhangrengang/REPcluster
