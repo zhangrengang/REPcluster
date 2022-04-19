@@ -115,8 +115,7 @@ class Pipeline:
 		matrix = self.outdir + '.a2a.csv'
 		# kmer-db
 		ckp_file = self.tmpdir + '.k{}.ok'.format(self.k)
-		ckp = check_ckp(ckp_file)
-		if self.overwrite or not ckp:
+		if check_ckp(ckp_file, overwrite=self.overwrite):
 			cmd = 'kmer-db build {opts} {input} {db} && \
 				kmer-db all2all {db} {matrix} && touch {ckp}'.format(
 				opts=opts, input=input, db=db, matrix=matrix, ckp = ckp_file)
@@ -126,15 +125,13 @@ class Pipeline:
 		dist = matrix + '.' + self.measure
 		network = self.outdir + '.network'
 		ckp_file = ckp_file+ '.{}.ok'.format(self.measure)
-		ckp = check_ckp(ckp_file)
-		if self.overwrite or not ckp:
+		if check_ckp(ckp_file, overwrite=self.overwrite):
 			cmd = 'kmer-db distance {measure} -phylip-out {matrix} && touch {ckp}'.format(
 				opts=opts, measure=self.measure, input=input, db=db, matrix=matrix, ckp = ckp_file)
 			run_cmd(cmd, log=True, fail_exit=True)
 		
 		ckp_file = ckp_file+ '.{}.ok'.format(self.min_similarity)
-		ckp = check_ckp(ckp_file)
-		if self.overwrite or not ckp:
+		if check_ckp(ckp_file, overwrite=self.overwrite):
 			# output network
 			with open(network, 'w') as fout:
 				matrix2list(dist, fout, cutoff=self.min_similarity, phylip=True)
@@ -146,15 +143,13 @@ class Pipeline:
 		attr = self.outdir + '.attr'
 		outseq = self.outdir + '.clust'
 		ckp_file = ckp_file + '.mcl.ok'
-		ckp = check_ckp(ckp_file)
-		if self.overwrite or not ckp:
+		if check_ckp(ckp_file, overwrite=self.overwrite):
 			cmd = 'mcl {input} --abc -I {inflation} -o {output} -te {ncpu} && touch {ckp}'.format(
 				inflation=self.inflation, input=network, output=cluster, ncpu=self.ncpu, ckp = ckp_file)
 			run_cmd(cmd, log=True, fail_exit=True)
 			
 		ckp_file = ckp_file + '.output.ok'
-		ckp = check_ckp(ckp_file)
-		if self.overwrite or not ckp:
+		if check_ckp(ckp_file, overwrite=self.overwrite):
 			logger.info('Output..')
 			# attribution of CID
 			mcl = MclGroup(cluster, prefix='CL')

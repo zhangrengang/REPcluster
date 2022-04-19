@@ -192,7 +192,7 @@ def run_tasks(cmd_list, tc_tasks=None, mode='grid', grid_opts='', cpu=1, mem='1g
 			#f = sys.stdout
 			for (stdout, stderr, status) in job_status:
 				if fout is not None:
-					print('>>STATUS:\t{}\n>>STDOUT:\n{}\n>>STDERR:\n{}'.format(status, stdout, stderr), file=fout)
+					print('>>STATUS:\t{}\n>>STDOUT:\n{}\n>>STDERR:\n{}'.format(status, stdout.decode(), stderr.decode()), file=fout)
 			#		print('>>STATUS:\t{}\n>>STDERR:\n{}'.format(status, stderr), file=fout)
 			#	f.write(stdout)
 				exit_codes += [status]
@@ -350,7 +350,7 @@ imap: True for imap'''
 #	logger.info('Joining Pool')
 	pool.join()
 
-def pool_run(cmd_list, processors=8, log=True, logger=None, **kargs):
+def pool_run(cmd_list, processors=8, log=False, logger=None, **kargs):
 	try: processors = int(processors)
 	except (TypeError,ValueError):
 		processors = multiprocessing.cpu_count()
