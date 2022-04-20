@@ -35,7 +35,7 @@ def argparser():
 					help="Temporary directory [default=%(default)s]")
 	# kmer
 	group_kmer = parser.add_argument_group('Kmer matrix',)
-	group_kmer.add_argument('-x', '-multiple', type=int, default=1, metavar='INT',
+	group_kmer.add_argument('-x', '-multiple', type=int, default=2, metavar='INT',
 					dest='multiple',
 					 help="Repeat sequences to cluster tandem repeat or circular sequences [default=%(default)s]")
 	group_kmer.add_argument('-k', type=int, default=15, metavar='INT',
