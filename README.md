@@ -6,7 +6,7 @@ git clone https://github.com/zhangrengang/REPcluster
 cd REPcluster
 
 # install
-conda -c bioconda kmer-db mcl
+conda -c bioconda kmer-db mcl xopen 
 python3 setup.py install
 
 # run an example
