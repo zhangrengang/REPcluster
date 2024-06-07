@@ -24,12 +24,12 @@ try:
 	import drmaa    # for grid
 	GRID = True
 	from tempfile import NamedTemporaryFile
-except (RuntimeError,ImportError,AttributeError) as e:
+except (RuntimeError,ImportError,AttributeError,OSError) as e:
 	if "DRMAA_LIBRARY_PATH" in format(e):
 		logger.warning('Grid computing is not available because DRMAA not configured properly: {}'.format(e))
 	else:
 		logger.warning('Grid computing is not available because DRMAA not installed: {}'.format(e))
-		logger.info('No DRMAA, Switching to local/cluster mode.')
+	logger.info('No DRMAA (see https://github.com/pygridtools/drmaa-python), Switching to local mode.')
 	GRID = False
 
 __version__ = '1.1'
@@ -149,6 +149,7 @@ class Grid(object):
 			return 'slurm'
 		else:
 			logger.warn('Please provide your grid system `{}` to auther'.format(name))
+		return 'sge'
 def run_tasks(cmd_list, tc_tasks=None, mode='grid', grid_opts='', cpu=1, mem='1g', cont=1,
 			retry=1, script=None, out_path=None, completed=None, cmd_sep='\n', **kargs):
 	if not cmd_list:
@@ -280,7 +281,7 @@ def file2list(cmd_file, sep="\n"):
 			cmd_list = f.read().split(sep)
 	return [cmd for cmd in cmd_list if cmd.strip()]
 
-def run_cmd(cmd, log=False, logger=None, fail_exit=False):
+def run_cmd(cmd, log=False, logger=None, fail_exit=True):
 	if log and logger is None:
 		logger = LOGGER
 	if logger is not None:
@@ -498,6 +499,7 @@ def main():
 def run_job(cmd_file=None, cmd_list=None, by_bin=1, tc_tasks=8, mode='grid', grid_opts='-tc {tc}', cont=1, fail_exit=True,
             ckpt=None, retry=1, out_path=None, cmd_sep='\n', **kargs):
 	if not GRID and mode == 'grid':
+		logger.info('GRID is not available. Turning to the local mode..')
 		mode = 'local'
 	tc_tasks = int(tc_tasks)
 	if cmd_file is None:
