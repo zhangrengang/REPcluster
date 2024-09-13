@@ -7,12 +7,15 @@ def matrix2list(inMat, outLst, cutoff=0.2, phylip=False):
 		i += 1
 		if i == 1:
 			continue
+#		if len(temp) == 1:
+#			continue
 		if phylip:
 			temp = line.rstrip().split()
 		else:
 			temp = line.rstrip('\n,').split(',')
 		id = temp[0].split()[0]
-		s = len(temp) - (i-2) 
+#		s = len(temp) - (i-2) 
+		s = 1
 		values = map(float, temp[s:])
 		for last_id, value in zip(last_ids, values):
 			if value < cutoff:

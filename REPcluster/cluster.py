@@ -117,7 +117,7 @@ class Pipeline:
 		ckp_file = self.tmpdir + '.k{}.ok'.format(self.k)
 		if not check_ckp(ckp_file, overwrite=self.overwrite):
 			cmd = 'kmer-db build {opts} {input} {db} && \
-				kmer-db all2all {db} {matrix} && touch {ckp}'.format(
+				kmer-db all2all-sp -sparse {db} {matrix} && touch {ckp}'.format(
 				opts=opts, input=input, db=db, matrix=matrix, ckp = ckp_file)
 			run_cmd(cmd, log=True, fail_exit=True)
 		
