@@ -10,7 +10,7 @@ from .matrix2list import matrix2list
 from .Mcl import MclGroup
 from .__version__ import version
 
-NCPU = multiprocessing.cpu_count()
+NCPU = len(os.sched_getaffinity(0)) #multiprocessing.cpu_count()
 bindir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -51,7 +51,10 @@ def argparser():
 	group_clst.add_argument('-c', '-min_similarity', type=float, default=0.2, metavar='FLOAT', 
 					dest='min_similarity',
 					help="Minimum similarity to cluster [default=%(default)s]")
-					
+	group_clst.add_argument('-d', '-len_diff', type=int, default=None, metavar='INT',
+                    dest='len_diff',
+                    help="Maximum difference in length [default=%(default)s]")
+				
 	group_clst.add_argument('-I', '-inflation', type=float, default=2.0, metavar='FLOAT',
 					dest='inflation',
 					help="Inflation for MCL (varying this parameter affects granularity) [default=%(default)s]")
@@ -101,7 +104,7 @@ class Pipeline:
 		opts = '-k {}'.format(self.k)
 		fasta = self.tmpdir + '.multi.fa'
 		with open(fasta, 'w') as fout:
-			d_seqs = multi_seqs(seqfiles=self.fasta, outfile=fout, 
+			d_seqs, d_lens = multi_seqs(seqfiles=self.fasta, outfile=fout, 
 						fold=self.multiple, min_length=self.k*self.multiple)
 		opts += ' -multisample-fasta'
 		input = self.tmpdir + '.list'
@@ -116,8 +119,9 @@ class Pipeline:
 		# kmer-db
 		ckp_file = self.tmpdir + '.k{}.ok'.format(self.k)
 		if not check_ckp(ckp_file, overwrite=self.overwrite):
+			# -sp -sparse
 			cmd = 'kmer-db build {opts} {input} {db} && \
-				kmer-db all2all-sp -sparse {db} {matrix} && touch {ckp}'.format(
+				kmer-db all2all {db} {matrix} && touch {ckp}'.format(
 				opts=opts, input=input, db=db, matrix=matrix, ckp = ckp_file)
 			run_cmd(cmd, log=True, fail_exit=True)
 		
@@ -134,7 +138,7 @@ class Pipeline:
 		if not check_ckp(ckp_file, overwrite=self.overwrite):
 			# output network
 			with open(network, 'w') as fout:
-				matrix2list(dist, fout, cutoff=self.min_similarity, phylip=True)
+				matrix2list(dist, fout, cutoff=self.min_similarity, phylip=True, len_diff=self.len_diff, d_lens=d_lens)
 			mk_ckp(ckp_file, )
 		
 		# cluster by mcl

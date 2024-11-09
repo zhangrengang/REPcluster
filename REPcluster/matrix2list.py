@@ -1,6 +1,6 @@
 import sys
 
-def matrix2list(inMat, outLst, cutoff=0.2, phylip=False):
+def matrix2list(inMat, outLst, cutoff=0.2, phylip=False, d_lens = {}, len_diff=None):
 	i = 0
 	last_ids = []
 	for line in open(inMat):
@@ -19,6 +19,9 @@ def matrix2list(inMat, outLst, cutoff=0.2, phylip=False):
 		values = map(float, temp[s:])
 		for last_id, value in zip(last_ids, values):
 			if value < cutoff:
+				continue
+			# 
+			if len_diff is not None and abs(d_lens[last_id] - d_lens[id]) > len_diff:
 				continue
 			line = [last_id, id, value]
 			line = map(str, line)
