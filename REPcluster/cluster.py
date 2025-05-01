@@ -130,8 +130,10 @@ class Pipeline:
 		network = self.outdir + '.network'
 		ckp_file = ckp_file+ '.{}.ok'.format(self.measure)
 		if not check_ckp(ckp_file, overwrite=self.overwrite):
-			cmd = 'kmer-db distance {measure} -phylip-out {matrix} && touch {ckp}'.format(
-				opts=opts, measure=self.measure, input=input, db=db, matrix=matrix, ckp = ckp_file)
+			cmd = '{ kmer-db distance {measure} -phylip-out {matrix} || \
+kmer-db distance {measure} -phylip-out {matrix} {network}; } && touch {ckp}'.format(
+				opts=opts, measure=self.measure, input=input, db=db, 
+				network=network, matrix=matrix, ckp = ckp_file)
 			run_cmd(cmd, log=True, fail_exit=True)
 		
 		ckp_file = ckp_file+ '.{}.ok'.format(self.min_similarity)
